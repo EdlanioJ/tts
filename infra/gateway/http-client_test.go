@@ -70,7 +70,9 @@ func TestHTTPClient(t *testing.T) {
 				Text: "test",
 				Lang: "en",
 			}
-			_, err := httpClient.GetAudio(input)
+			output, err := httpClient.GetAudio(input)
+
+			defer output.Close()
 			if tc.hasErr {
 				is.Error(err)
 			} else {

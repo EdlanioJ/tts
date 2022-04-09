@@ -5,6 +5,7 @@
 package mock
 
 import (
+	io "io"
 	reflect "reflect"
 
 	gateway "github.com/EdlanioJ/tts/domain/gateway"
@@ -35,10 +36,10 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 }
 
 // GetAudio mocks base method.
-func (m *MockClient) GetAudio(arg0 gateway.ClientInput) (gateway.ClientOutput, error) {
+func (m *MockClient) GetAudio(arg0 gateway.ClientInput) (io.ReadCloser, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAudio", arg0)
-	ret0, _ := ret[0].(gateway.ClientOutput)
+	ret0, _ := ret[0].(io.ReadCloser)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

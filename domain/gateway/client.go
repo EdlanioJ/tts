@@ -7,8 +7,6 @@ type ClientInput struct {
 	Lang string
 }
 
-type ClientOutput io.Reader
-
 type Client interface {
-	GetAudio(ClientInput) (ClientOutput, error)
+	GetAudio(ClientInput) (io.ReadCloser, error)
 }

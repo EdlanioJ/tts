@@ -32,6 +32,7 @@ func (speech *TextToSpeech) Exec(input InputTextToSpeech) (OutputTextToSpeech, e
 	if err != nil {
 		return nil, errorf("error getting audio: %v", err)
 	}
+	defer res.Close()
 
 	audio := entity.NewAudio()
 

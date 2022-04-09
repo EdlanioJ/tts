@@ -2,6 +2,7 @@ package gateway
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 
@@ -25,21 +26,18 @@ func NewGoogleTranlaterClient(client HTTPClient) *googleTranslaterClient {
 	}
 }
 
-func (gt *googleTranslaterClient) GetAudio(input gateway.ClientInput) (gateway.ClientOutput, error) {
+func (gt *googleTranslaterClient) GetAudio(input gateway.ClientInput) (io.ReadCloser, error) {
 	fileURL := fmt.Sprintf(gt.baseURL, url.QueryEscape(input.Text), input.Lang)
 	res, err := gt.client.Get(fileURL)
 	if err != nil {
 		return nil, errorf("error making request: %v", err)
 	}
 
-	defer res.Body.Close()
-
 	if res.StatusCode != http.StatusOK {
 		return nil, errorf("error invalid response: %v", http.StatusText(res.StatusCode))
 	}
 
-	output := res.Body
-	return output, nil
+	return res.Body, nil
 }
 
 func errorf(format string, a ...interface{}) error {
