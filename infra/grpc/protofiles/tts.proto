@@ -1,0 +1,17 @@
+syntax = "proto3";
+package github.com.EdlanioJ.tts;
+
+option go_package = "infra/grpc/pb";
+
+service TextToSpeech {
+  rpc Say(Request) returns (Response) {}
+}
+
+message Request {
+  string text = 1;
+  string language = 2;
+}
+
+message Response {
+  bytes audio = 1;
+}

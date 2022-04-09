@@ -1,0 +1,14 @@
+version: "3"
+
+services:
+  tts:
+    container_name: tts
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    ports:
+      - "${GRPC_PORT}:${GRPC_PORT}"
+    extra_hosts:
+      - "host.docker.internal:172.17.0.1"
