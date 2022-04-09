@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestHTTPClient(t *testing.T) {
+func TestGoogleTranslationClient(t *testing.T) {
 	testCases := []struct {
 		name    string
 		hasErr  bool
