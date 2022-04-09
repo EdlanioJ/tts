@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
-	"net/http"
 	"testing"
 
 	"github.com/EdlanioJ/tts/domain/gateway/mock"
@@ -19,53 +18,30 @@ func TestTextToSpeech(t *testing.T) {
 	testCases := []struct {
 		name    string
 		hasErr  bool
-		prepare func(*mock.MockHTTPClient)
+		prepare func(*mock.MockClient)
 	}{
 		{
-			name: "error making request",
-			prepare: func(c *mock.MockHTTPClient) {
-				c.EXPECT().Get(gomock.Any()).Return(nil, fmt.Errorf("error making request")).Times(1)
-			},
-			hasErr: true,
-		},
-		{
-			name: "error invalid response",
-			prepare: func(c *mock.MockHTTPClient) {
-				body := ioutil.NopCloser(bytes.NewReader([]byte("audio")))
-
-				response := &http.Response{
-					Body:       body,
-					StatusCode: http.StatusBadRequest,
-				}
-				c.EXPECT().Get(gomock.Any()).Return(response, nil).Times(1)
+			name: "error getting audio",
+			prepare: func(c *mock.MockClient) {
+				c.EXPECT().GetAudio(gomock.Any()).Return(nil, fmt.Errorf("error making request")).Times(1)
 			},
 			hasErr: true,
 		},
 		{
 			name: "error encoding response",
-			prepare: func(c *mock.MockHTTPClient) {
-				body := ioutil.NopCloser(bytes.NewReader([]byte("audio")))
-				response := &http.Response{
-					Body:       body,
-					StatusCode: http.StatusOK,
-					Header:     http.Header{"Content-Type": []string{ContentType}},
-				}
+			prepare: func(c *mock.MockClient) {
+				res := ioutil.NopCloser(bytes.NewReader([]byte("audio")))
 
-				c.EXPECT().Get(gomock.Any()).Return(response, nil).Times(1)
+				c.EXPECT().GetAudio(gomock.Any()).Return(res, nil).Times(1)
 			},
 			hasErr: true,
 		},
 		{
 			name: "success",
-			prepare: func(c *mock.MockHTTPClient) {
-				body := ioutil.NopCloser(bytes.NewReader(audioBytes))
-				response := &http.Response{
-					Body:       body,
-					StatusCode: http.StatusOK,
-					Header:     http.Header{"Content-Type": []string{ContentType}},
-				}
+			prepare: func(c *mock.MockClient) {
+				res := ioutil.NopCloser(bytes.NewReader(audioBytes))
 
-				c.EXPECT().Get(gomock.Any()).Return(response, nil).Times(1)
+				c.EXPECT().GetAudio(gomock.Any()).Return(res, nil).Times(1)
 			},
 		},
 	}
@@ -78,7 +54,7 @@ func TestTextToSpeech(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
-			client := mock.NewMockHTTPClient(ctrl)
+			client := mock.NewMockClient(ctrl)
 			tc.prepare(client)
 
 			ttsService := NewTextToSpeech(client)

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"net/http"
 	"os"
 	"strconv"
 
@@ -24,8 +25,9 @@ func main() {
 		panic(err)
 	}
 
-	httpClient := gateway.NewHTTPClient()
-	ttsUsecase := usecase.NewTextToSpeech(httpClient)
+	client := &http.Client{}
+	gtClient := gateway.NewGoogleTranlaterClient(client)
+	ttsUsecase := usecase.NewTextToSpeech(gtClient)
 
 	grpcServer := grpc.NewGRPCServer(grpcPort, ttsUsecase)
 	grpcServer.Serve()

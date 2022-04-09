@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net"
-	"net/http"
 	"testing"
 
 	"github.com/EdlanioJ/tts/domain/gateway/mock"
@@ -20,14 +19,14 @@ import (
 
 type TextToSpeechSuite struct {
 	suite.Suite
-	ctrl       *gomock.Controller
-	httpClient *mock.MockHTTPClient
-	req        *pb.Request
+	ctrl   *gomock.Controller
+	client *mock.MockClient
+	req    *pb.Request
 }
 
 func (s *TextToSpeechSuite) SetupTest() {
 	s.ctrl = gomock.NewController(s.T())
-	s.httpClient = mock.NewMockHTTPClient(s.ctrl)
+	s.client = mock.NewMockClient(s.ctrl)
 	s.req = &pb.Request{
 		Language: "en",
 		Text:     "Hello World",
@@ -39,9 +38,9 @@ func (s *TextToSpeechSuite) TearDownTest() {
 }
 
 func (s *TextToSpeechSuite) TestFailure() {
-	s.httpClient.EXPECT().Get(gomock.Any()).Return(nil, fmt.Errorf("error"))
+	s.client.EXPECT().GetAudio(gomock.Any()).Return(nil, fmt.Errorf("error"))
 
-	ttsUsecase := usecase.NewTextToSpeech(s.httpClient)
+	ttsUsecase := usecase.NewTextToSpeech(s.client)
 	addr := startTextToSpeechServer(s.T(), ttsUsecase)
 	ttsClient := newTextToSpeechClient(addr, s.T())
 	res, err := ttsClient.Say(context.TODO(), s.req)
@@ -54,16 +53,10 @@ func (s *TextToSpeechSuite) TestSuccess() {
 	audioBytes, err := ioutil.ReadFile("../../../testdata/audio.mp3")
 	assert.NoError(s.T(), err)
 
-	body := ioutil.NopCloser(bytes.NewReader(audioBytes))
-	response := &http.Response{
-		Body:       body,
-		StatusCode: http.StatusOK,
-		Header:     http.Header{"Content-Type": []string{usecase.ContentType}},
-	}
+	clientRes := ioutil.NopCloser(bytes.NewReader(audioBytes))
+	s.client.EXPECT().GetAudio(gomock.Any()).Return(clientRes, nil)
 
-	s.httpClient.EXPECT().Get(gomock.Any()).Return(response, nil)
-
-	ttsUsecase := usecase.NewTextToSpeech(s.httpClient)
+	ttsUsecase := usecase.NewTextToSpeech(s.client)
 	addr := startTextToSpeechServer(s.T(), ttsUsecase)
 	ttsClient := newTextToSpeechClient(addr, s.T())
 	res, err := ttsClient.Say(context.TODO(), s.req)
